@@ -1,0 +1,7 @@
+app.use(bodyParser.urlencoded({
+    extended: true
+})); // set application/x-www-form-urlencoded as middleware
+
+WHAT IS A X-WWW-FORM-URLENCODED AND HOW DOES IT GET PARSED?
+- I understand that bodyparser.urlencoded... returns a function.
+- app.use(function...) basically makes everything going through the file get 'checked' by the function
