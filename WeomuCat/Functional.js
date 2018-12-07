@@ -27,7 +27,7 @@ function getMe(callback) {
 	requestPost(callback, "getMe");
 }
 
-function getUpdates(callback, offset, limit=100, timeout=0, allowed_updates=[]) {
+function getUpdates(callback, offset=0, limit=100, timeout=0, allowed_updates=[]) {
 	const form = {
 		"offset" : offset,
 		"limit" : limit,
