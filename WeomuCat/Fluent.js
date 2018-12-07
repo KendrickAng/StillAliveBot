@@ -72,9 +72,9 @@ class getUpdatesClass {
 		this._limit = json["limit"] ? json["limit"] : 100;
 		this._timeout = json["timeout"] ? json["timeout"] : 0;
 		this._allowed_updates = json["allowed_updates"] ? json["allowed_updates"] : [];
+		this._forever = false;
 		this._success = () => undefined;
 		this._error = () => undefined;
-		this._forever = false;
 		this.post();
 	}
 	post() {
@@ -241,8 +241,8 @@ Bot.sendMessage({
 // Example script which replies to /hello
 Bot.getUpdates({
 	"timeout" : 10
-}).success(function(updates, bot) {
-	updates.forEach(function(update) {
+}).success((updates, bot) => {
+	updates.forEach(update => {
 		if (update.message) {
 			const message = update.message;
 			if (message.from && message.text === "/hello") {
