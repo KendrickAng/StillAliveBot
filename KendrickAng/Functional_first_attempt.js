@@ -12,7 +12,8 @@ const request = require('request');
 let update_id = 0;
 
 function long_poll() {
-
+    get_updates(update_id, 100, 120);
+    long_poll();
 }
 
 // method: @String, callback: @function
@@ -75,4 +76,4 @@ function get_uri(method) {
         + method;
 }
 
-get_updates();
+long_poll();
