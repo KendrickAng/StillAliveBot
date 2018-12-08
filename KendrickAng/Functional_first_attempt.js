@@ -9,6 +9,7 @@ get the url, post the url with request (returning a promise)
 */
 
 const request = require('request');
+let update_id = 0;
 
 function long_poll() {
 
@@ -45,10 +46,28 @@ function get_updates(offset=0, limit=100, timeout=0, allowed_updates=[]) {
     return request_http("getUpdates", "POST", process_updates, params);
 }
 
-// input: json body object with @Array of Updates
+// input: json body object with @Array of Updates, also confirms that the updates have been processed
 function process_updates(res) {
     const updates = res.result;
-    console.log(updates);
+    for(let i = 0; i < updates.length; i++) {
+        update_id = process_update(updates[i]);
+    }
+    console.log(update_id);
+}
+// input: update object, output: id of last update object
+function process_update(update) {
+    const update_id = update.update_id;
+    const player_id = update.message.chat.id;
+    const text = update.message.text;
+    switch(text) {
+        case "/help":
+            console.log("HELP WAS ASKED!");
+            break;
+        default:
+            console.log("I dont know how to answer that");
+            break;
+    }
+    return update_id;
 }
 
 function get_uri(method) {
