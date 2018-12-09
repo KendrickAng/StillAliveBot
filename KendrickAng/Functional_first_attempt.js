@@ -8,9 +8,12 @@ FUNCTIONS:
 get the url, post the url with request (returning a promise)
 */
 
+//TODO: Shorten the logic code. Could use a dict to store and retrieve messages.
+
 const request = require('request');
 let update_id = 0;
 let forever = true;
+let help_requested = false;
 
 function long_poll() {
     console.log("Offset is: ", update_id);
@@ -50,11 +53,12 @@ function process_update(update) {
 }
 
 // calls sendMessage through POST, sending a message through the bot to the user
-function send_message(player_id, text) {
+function send_message(player_id, text, keyboard={}) {
     const form = {
         chat_id: player_id,
-        text: text
-    }
+        text: text,
+        reply_markup: JSON.stringify(keyboard)
+    };
     request_http("sendMessage", "POST", x => x, form);
 }
 // ********************************************* HTTP METHODS *****************************************************
@@ -71,16 +75,63 @@ function request_http(method, type, callback, params={}) {
 // ********************************************** HELPER METHODS ***************************************************
 // input: @Integer/String (user id) @String (from user), output: @String
 function process_text(player_id, player_name, text) {
-    const help_res = "How may I help you, " + player_name + "?";
+    const help_res = "Hello " + player_name + ", on a scale from 1 (insane) to 9 (I'm fine), what's your sanity level?";
     const default_res = "Sorry, I don't get what you're trying to say.";
-    switch(text) {
-            case "/help":
-                send_message(player_id, help_res);
-                break;
-            default:
-                send_message(player_id, default_res);
-                break;
+    const start_res = "Welcome! Things are still being setup here, so we can't accommodate you yet. Why don't you take a look around first?" +
+                       "\n" + "Type /help to get a list of commands."
+        if(help_requested) {
+            switch(text) {
+                case "1":
+                    send_message(player_id, "You should seek professional help. But first, have a :)");
+                    help_requested = false;
+                    break;
+                case "9":
+                    send_message(player_id, "I'm glad you're doing fine! Hope to see you again ;)");
+                    help_requested = false;
+                    break;
+                default:
+                    send_message(player_id, "All the best.");
+                    help_requested = false;
+                    break;
+            }
+        } else {
+            switch(text) {
+                case "/help":
+                    help_requested = true;
+                    const keyboard = make_keyboard([["1", "2", "3"], ["4", "5", "6"], ["7", "8", "9"]]);
+                    send_message(player_id, help_res, keyboard);
+                    break;
+                case "/start":
+                    send_message(player_id, start_res);
+                    break;
+                default:
+                    send_message(player_id, default_res);
+                    break;
+        }
+
     }
+}
+
+// input: @Array of Array of String, output: ReplyKeyBoardMarkup object
+function make_keyboard(arr) {
+    if(arr === []) return [];
+    const height = arr.length;
+    const width = arr[0].length;
+    for(let i = 0; i < height; i++) {
+        for(let j = 0; j < width; j++) {
+            arr[i][j] = make_keyboard_button(arr[i][j]);
+        }
+    }
+    const keyboard = {
+        keyboard: arr,
+        one_time_keyboard: true
+    };
+    return keyboard;
+}
+function make_keyboard_button(str) {
+    return {
+        text: str
+    };
 }
 
 function get_uri(method) {
