@@ -8,12 +8,12 @@ FUNCTIONS:
 get the url, post the url with request (returning a promise)
 */
 
-//TODO: Shorten the logic code. Could use a dict to store and retrieve messages.
+//TODO: Shorten the logic code. Could use a dict/object to store and retrieve messages.
 
 const request = require('request');
 let update_id = 0;
 let forever = true;
-let help_requested = false;
+let user_help_requests = {};
 
 function long_poll() {
     console.log("Offset is: ", update_id);
@@ -75,29 +75,31 @@ function request_http(method, type, callback, params={}) {
 // ********************************************** HELPER METHODS ***************************************************
 // input: @Integer/String (user id) @String (from user), output: @String
 function process_text(player_id, player_name, text) {
+    // if the user is not registered, add the user to user_help_requests
+    add_user(player_id);
     const help_res = "Hello " + player_name + ", on a scale from 1 (insane) to 9 (I'm fine), what's your sanity level?";
     const default_res = "Sorry, I don't get what you're trying to say.";
     const start_res = "Welcome! Things are still being setup here, so we can't accommodate you yet. Why don't you take a look around first?" +
-                       "\n" + "Type /help to get a list of commands."
-        if(help_requested) {
+                       "\n" + "Type /help to get started."
+        if(get_user_help_request(player_id) === true) {
             switch(text) {
                 case "1":
                     send_message(player_id, "You should seek professional help. But first, have a :)");
-                    help_requested = false;
+                    set_user_help_request(player_id, false);
                     break;
                 case "9":
                     send_message(player_id, "I'm glad you're doing fine! Hope to see you again ;)");
-                    help_requested = false;
+                    set_user_help_request(player_id, false);
                     break;
                 default:
                     send_message(player_id, "All the best.");
-                    help_requested = false;
+                    set_user_help_request(player_id, false);
                     break;
             }
         } else {
             switch(text) {
                 case "/help":
-                    help_requested = true;
+                    set_user_help_request(player_id, true);
                     const keyboard = make_keyboard([["1", "2", "3"], ["4", "5", "6"], ["7", "8", "9"]]);
                     send_message(player_id, help_res, keyboard);
                     break;
@@ -110,6 +112,20 @@ function process_text(player_id, player_name, text) {
         }
 
     }
+}
+// input: @integer player id, output: nil
+function add_user(player_id) {
+    if(user_help_requests[player_id] === null) {
+        user_help_requests[player_id] = false;
+    }
+}
+// input: @integer player id, @boolean
+function set_user_help_request(player_id, bool) {
+    user_help_requests[player_id] = bool;
+}
+// input: @integer player id, output: @boolean
+function get_user_help_request(player_id) {
+    return user_help_requests[player_id];
 }
 
 // input: @Array of Array of String, output: ReplyKeyBoardMarkup object
